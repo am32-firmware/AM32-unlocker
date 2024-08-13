@@ -1,0 +1,8 @@
+Name: capstone
+Description: Capstone disassembly engine
+Version: 4.0.2
+libdir=/home/runner/work/openocd/openocd/build/x86_64-w64-mingw32-root/usr/lib
+includedir=/usr/include/capstone
+archive=${libdir}/libcapstone.a
+Libs: -L${libdir} -lcapstone
+Cflags: -I${includedir}
