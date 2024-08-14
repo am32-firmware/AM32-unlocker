@@ -3,6 +3,9 @@
 UI for unlocking ESC MCUs for AM32 project
 '''
 
+MCU_LIST = ["F051", "G071", "L431", "E230", "F415", "F421", "L431"]
+PIN_LIST = ["PA2", "PB4","PA15"]
+
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import subprocess
@@ -167,14 +170,14 @@ root.grid_columnconfigure(1, weight=1)
 mcu_var = tk.StringVar()
 mcu_label = ttk.Label(root, text="Select MCU Type:")
 mcu_label.grid(row=0, column=0, padx=10, pady=10)
-mcu_dropdown = ttk.OptionMenu(root, mcu_var, "F031", "F031", "F051", "G071", "L431", "E230", "F415", "F421", "L431")
+mcu_dropdown = ttk.OptionMenu(root, mcu_var, MCU_LIST[0], *MCU_LIST)
 mcu_dropdown.grid(row=0, column=1, padx=10, pady=10)
 
 # pin selection
 pin_var = tk.StringVar()
 pin_label = ttk.Label(root, text="Signal Pin:")
 pin_label.grid(row=1, column=0, padx=10, pady=10)
-pin_dropdown = ttk.OptionMenu(root, pin_var, "PA2", "PA2", "PB4")
+pin_dropdown = ttk.OptionMenu(root, pin_var, PIN_LIST[0], *PIN_LIST)
 pin_dropdown.grid(row=1, column=1, padx=10, pady=10)
 
 # locking mode
