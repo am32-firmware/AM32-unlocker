@@ -10,4 +10,4 @@ for m in $MCUS; do
     }
 done
 
-pyinstaller $OPTIONS unlocker.py
+pyinstaller $OPTIONS esc_unlocker.py

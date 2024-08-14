@@ -26,7 +26,7 @@ else:
 
 # Run PyInstaller with the accumulated options
 try:
-    subprocess.run(f"python -m PyInstaller {options} unlocker.py", shell=True, check=True)
+    subprocess.run(f"python -m PyInstaller {options} esc_unlocker.py", shell=True, check=True)
 except subprocess.CalledProcessError as e:
     print(f"Error: PyInstaller failed with exit code {e.returncode}")
     sys.exit(1)
