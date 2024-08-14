@@ -58,7 +58,11 @@ def get_resource_path(relative_path):
     except AttributeError:
         base_path = os.path.abspath(".")
 
-    return os.path.join(base_path, relative_path)
+    ret = os.path.join(base_path, relative_path)
+    if is_windows:
+        # cope with windows paths
+        ret = ret.replace("\\", "\\\\")
+    return ret
 
     
 def get_openocd():
@@ -85,7 +89,7 @@ def run_openocd():
     config_file = f"MCU/{mcu_type}/openocd-{op}.cfg"
 
     config_file = get_resource_path(config_file)
-    bootloader = f"bootloaders/AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin"
+    bootloader = os.path.join("bootloaders", f"AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin")
     bootloader = get_resource_path(bootloader)
 
     print("Using config file '%s'" % config_file)
@@ -99,7 +103,8 @@ def run_openocd():
             else:
                 startupinfo = None
 
-            process = subprocess.Popen([get_openocd(),
+            openocd = get_openocd()
+            process = subprocess.Popen([openocd,
                                         '-c', "set BOOTLOADER %s" % bootloader,
                                         '--file', config_file],
                                         stdout=subprocess.PIPE,
