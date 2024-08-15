@@ -13,6 +13,7 @@ import os
 import sys
 import threading
 import time
+from datetime import datetime
 
 import numpy as np
 import simpleaudio as sa
@@ -52,6 +53,19 @@ def play_success():
     pending_tones.append((600, 0.1))
     pending_tones.append((800, 0.1))
     pending_tones.append((1000, 0.1))
+
+
+def log_message(msg):
+    '''append to the log'''
+    try:
+        tstr = datetime.now().strftime("%c")
+        f = open("esc_unlocker.log", "a")
+        f.write(tstr + "\n")
+        f.write(msg)
+        f.write("\n")
+        f.close()
+    except Exception:
+        pass
 
 def get_resource_path(relative_path):
     """ Get the absolute path to a resource, works for development and PyInstaller """
@@ -95,6 +109,8 @@ def run_openocd():
     bootloader = os.path.join("bootloaders", f"AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin")
     bootloader = get_resource_path(bootloader)
 
+    log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
+
     print("Using config file '%s'" % config_file)
     while running:
         try:
@@ -118,10 +134,12 @@ def run_openocd():
             if output:
                 output_text.insert(tk.END, output)
                 output_text.see(tk.END)
+                log_message(output)
             outerr = process.stderr.read().decode()
             if outerr:
                 output_text.insert(tk.END, outerr)
                 output_text.see(tk.END)
+                log_message(outerr)
             if outerr.find("Cortex-M") != -1:
                 # found the MCU
                 play_found()
@@ -133,6 +151,7 @@ def run_openocd():
             retcode = process.poll()
             if retcode is not None:
                 if retcode == 0:
+                    log_message("Success")
                     print("%s successful." % mode_var.get())
                     play_success()
                     update_status_led("green")
@@ -149,6 +168,7 @@ def start_openocd():
 def stop_openocd():
     global running
     running = False
+    log_message("stopping")
 
 def quit():
     global running
