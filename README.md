@@ -94,6 +94,13 @@ LED goes green. Your MCU is now flashed with an AM32 bootloader. You
 can how use the normal AM32 config tools to load the right firmware
 for your ESC and change settings.
 
+Diagnostics
+-----------
+
+When it doesn't work you should find a file esc_unlocker.log in the
+directory when you launched the unlocker. Share this file on the AM32
+discord to see if someone can help.
+
 CAUTION
 -------
 
