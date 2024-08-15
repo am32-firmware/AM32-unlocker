@@ -22,7 +22,7 @@ is_windows = platform.system() == "Windows"
 
 pending_tones = []
 
-def play_tone(frequency, duration=0.1, volume=0.5):
+def play_tone(frequency, duration=0.1, volume=0.2):
     '''
     play a tone
     '''
