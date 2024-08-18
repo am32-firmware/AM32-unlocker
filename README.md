@@ -94,6 +94,15 @@ LED goes green. Your MCU is now flashed with an AM32 bootloader. You
 can how use the normal AM32 config tools to load the right firmware
 for your ESC and change settings.
 
+Troubleshooting
+---------------
+
+You may need to install WinUSB via zadig if you get this error:
+
+ - Error: libusb_open() failed with LIBUSB_ERROR_NOT_SUPPORTED
+
+Install from https://zadig.akeo.ie/
+
 Diagnostics
 -----------
 
