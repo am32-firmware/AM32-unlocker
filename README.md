@@ -30,6 +30,8 @@ Usage
 You will need to download the linux or windows binaries for
 "esc_updater" from the releases section of this repository.
 
+ https://github.com/tridge/AM32-unlocker/releases
+
 On launch you will be presented with a screen like this:
 
 ![Unlocker GUI](docs/screen_shot.jpg "Unlocker GUI")
