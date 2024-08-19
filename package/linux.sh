@@ -2,7 +2,7 @@
 
 MCUS=$(/bin/ls MCU)
 
-OPTIONS="--onefile --windowed --add-data tools/linux:tools/linux --add-data bootloaders:bootloaders"
+OPTIONS="--onefile --windowed --add-data tools/linux:tools/linux --add-data bootloaders:bootloaders --add-data probes:probes"
 for m in $MCUS; do
     [ -d MCU/$m ] && {
         echo "Adding MCU $m"

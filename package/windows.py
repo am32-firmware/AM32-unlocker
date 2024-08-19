@@ -7,7 +7,7 @@ import sys
 MCUPath = "MCU"
 
 # Initialize the options for PyInstaller
-options = "--onefile --windowed --hidden-import=simpleaudio --add-data=tools/windows:tools/windows --add-data bootloaders:bootloaders"
+options = "--onefile --windowed --hidden-import=simpleaudio --add-data=tools/windows:tools/windows --add-data bootloaders:bootloaders --add-data probes:probes"
 
 # Get the list of subdirectories in the MCU directory
 if os.path.exists(MCUPath):

@@ -113,7 +113,7 @@ def run_openocd():
     else:
         op = "unlock"
     config_file = f"MCU/{mcu_type}/openocd-{op}.cfg"
-    probe_file = f"probes/{probe_type}.cfg"
+    probe_file = get_resource_path(f"probes/{probe_type}.cfg")
 
     config_file = get_resource_path(config_file)
     bootloader = os.path.join("bootloaders", f"AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin")
