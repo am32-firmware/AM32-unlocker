@@ -3,6 +3,7 @@
 UI for unlocking ESC MCUs for AM32 project
 '''
 
+PROBE_LIST = ["ST Link", "JLink", "CMSIS-DAP"]
 MCU_LIST = ["F051", "G071", "L431", "E230", "F415", "F421", "L431"]
 PIN_LIST = ["PA2", "PB4","PA15"]
 
@@ -98,12 +99,21 @@ def run_openocd():
     global running
     running = True
     mcu_type = mcu_var.get()
+    probe_type = probe_var.get()
+    if probe_type == "ST Link":
+        probe_type = "stlink"
+    elif probe_type == "JLink":
+        probe_type = "jlink"
+    elif probe_type == "CMSIS-DAP":
+        probe_type = "cmsis-dap"
+
     pin = pin_var.get()
     if mode_var.get() == "Lock":
         op = "lock"
     else:
         op = "unlock"
     config_file = f"MCU/{mcu_type}/openocd-{op}.cfg"
+    probe_file = f"probes/{probe_type}.cfg"
 
     config_file = get_resource_path(config_file)
     bootloader = os.path.join("bootloaders", f"AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin")
@@ -112,6 +122,7 @@ def run_openocd():
     log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
 
     print("Using config file '%s'" % config_file)
+    print("Using probe file '%s'" % probe_file)
     while running:
         try:
 
@@ -125,6 +136,7 @@ def run_openocd():
             openocd = get_openocd()
             process = subprocess.Popen([openocd,
                                         '-c', "set BOOTLOADER %s" % bootloader,
+                                        '--file', probe_file,
                                         '--file', config_file],
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,
@@ -185,6 +197,15 @@ root.title("AM32 ESC Unlocker")
 root.grid_rowconfigure(5, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
+root.grid_columnconfigure(2, weight=1)
+root.grid_columnconfigure(3, weight=1)
+
+# Probe selection
+probe_var = tk.StringVar()
+probe_label = ttk.Label(root, text="Select MCU Type:")
+probe_label.grid(row=0, column=2, padx=10, pady=10)
+probe_dropdown = ttk.OptionMenu(root, probe_var, PROBE_LIST[0], *PROBE_LIST)
+probe_dropdown.grid(row=0, column=3, padx=10, pady=10)
 
 # MCU type selection
 mcu_var = tk.StringVar()
@@ -203,26 +224,26 @@ pin_dropdown.grid(row=1, column=1, padx=10, pady=10)
 # locking mode
 mode_var = tk.StringVar()
 mode_label = ttk.Label(root, text="Select Mode:")
-mode_label.grid(row=2, column=0, padx=10, pady=10)
+mode_label.grid(row=1, column=2, padx=10, pady=10)
 mode_dropdown = ttk.OptionMenu(root, mode_var, "Unlock", "Unlock", "Lock")
-mode_dropdown.grid(row=2, column=1, padx=10, pady=10)
+mode_dropdown.grid(row=1, column=3, padx=10, pady=10)
 
 # Start and Stop buttons
 start_button = ttk.Button(root, text="Start", command=start_openocd)
-start_button.grid(row=3, column=0, padx=10, pady=10)
+start_button.grid(row=2, column=1, padx=10, pady=10)
 stop_button = ttk.Button(root, text="Stop", command=stop_openocd)
-stop_button.grid(row=3, column=1, padx=10, pady=10)
+stop_button.grid(row=2, column=2, padx=10, pady=10)
 
 stop_button = ttk.Button(root, text="Quit", command=quit)
-stop_button.grid(row=4, column=0, padx=10, pady=10)
+stop_button.grid(row=2, column=3, padx=10, pady=10)
 
 # Status LED
 canvas = tk.Canvas(root, width=20, height=20)
-canvas.grid(row=4, column=1, columnspan=2, pady=10)
+canvas.grid(row=2, column=0, columnspan=1, pady=10)
 led = canvas.create_oval(5, 5, 20, 20, fill="gray")
 
 output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
-output_text.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+output_text.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
 
 running = False
 
