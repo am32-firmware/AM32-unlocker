@@ -11,6 +11,8 @@ The key benefits of using this tool over traditional debug tools are:
  - the same tool works with all AM32 MCU targets
  - bootloaders are included
 
+[![Unlocking a 4-in-1](https://i.ytimg.com/vi/8_A27GfAbSg/maxresdefault.jpg)](https://www.youtube.com/watch?v=8_A27GfAbSg "Unlocking a 4-in-1")
+
 Background
 ----------
 
