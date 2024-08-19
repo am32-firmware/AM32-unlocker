@@ -202,7 +202,7 @@ root.grid_columnconfigure(3, weight=1)
 
 # Probe selection
 probe_var = tk.StringVar()
-probe_label = ttk.Label(root, text="Select MCU Type:")
+probe_label = ttk.Label(root, text="Select Probe:")
 probe_label.grid(row=0, column=2, padx=10, pady=10)
 probe_dropdown = ttk.OptionMenu(root, probe_var, PROBE_LIST[0], *PROBE_LIST)
 probe_dropdown.grid(row=0, column=3, padx=10, pady=10)
