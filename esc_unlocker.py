@@ -4,7 +4,7 @@ UI for unlocking ESC MCUs for AM32 project
 '''
 
 PROBE_LIST = ["ST Link", "JLink", "CMSIS-DAP"]
-MCU_LIST = ["F051", "G071", "L431", "E230", "F415", "F421", "L431"]
+MCU_LIST = ["F031", "F051", "G071", "G071_64K", "L431", "E230", "F415", "F421"]
 PIN_LIST = ["PA2", "PB4","PA15"]
 
 import tkinter as tk
@@ -112,11 +112,18 @@ def run_openocd():
         op = "lock"
     else:
         op = "unlock"
-    config_file = f"MCU/{mcu_type}/openocd-{op}.cfg"
+
+    if mcu_type.find("_") != -1:
+        mcu_base = mcu_type.split('_')[0]
+        k_tag = "_" + mcu_type.split('_')[1]
+    else:
+        mcu_base = mcu_type
+        k_tag = ''
+    config_file = f"MCU/{mcu_base}/openocd-{op}.cfg"
     probe_file = get_resource_path(f"probes/{probe_type}.cfg")
 
     config_file = get_resource_path(config_file)
-    bootloader = os.path.join("bootloaders", f"AM32_{mcu_type}_BOOTLOADER_{pin}_V12.bin")
+    bootloader = os.path.join("bootloaders", f"AM32_{mcu_base}_BOOTLOADER_{pin}{k_tag}_V12.bin")
     bootloader = get_resource_path(bootloader)
 
     log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
