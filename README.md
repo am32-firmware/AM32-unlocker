@@ -10,6 +10,7 @@ The key benefits of using this tool over traditional debug tools are:
  - speed and simplicity
  - the same tool works with all AM32 MCU targets
  - bootloaders are included
+ - works with stlink-v2, cmsis-dap and jlink adapters
 
 [![Unlocking a 4-in-1](https://i.ytimg.com/vi/8_A27GfAbSg/maxresdefault.jpg)](https://www.youtube.com/watch?v=8_A27GfAbSg "Unlocking a 4-in-1")
 
@@ -30,11 +31,12 @@ Usage
 -----
 
 You will need to download the linux or windows binaries for
-"esc_updater" from the releases section of this repository.
+"esc_unlocker" from the releases section of this repository. Two
+packaged binaries are provided, one for windows and one for linux.
 
  https://github.com/tridge/AM32-unlocker/releases
 
-On launch you will be presented with a screen like this:
+When you run the tool you will get an interface like this:
 
 ![Unlocker GUI](docs/screen_shot.jpg "Unlocker GUI")
 
@@ -64,16 +66,22 @@ around when unlocking.
 Connecting SWD
 --------------
 
-You will need a STLink-v2 SWD adapter. These are available cheaply
-from places like ebay.
+You will need a debug adapter. The tool supports 3 types of adapter
+
+ - stlink-v2 (or clone)
+ - cmsis-dap
+ - jlink
+
+The simplest is to get one of the cheap stlink-v2 clones. These are available cheaply
+from places like ebay and aliexpress.
 
 ![STLink-v2](docs/stlink-v2.jpg "STLink-v2")
 
-You will need to connect the ground pin of the STLink-v2 to ground on
+You will need to connect the ground pin of the debug probe to ground on
 your ESC.
 
 Then you should get 2 male to female dupont leads. The two female ends
-will connect to the SWDIO and SWDCLK pins on your STLink-v2.
+will connect to the SWDIO and SWDCLK pins on your debug adapter.
 
 The two male ends should be bent slightly so that when held together
 they are separated by the distance between
