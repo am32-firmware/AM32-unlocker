@@ -11,9 +11,17 @@ is_windows = platform.system() == "Windows"
 MCUPath = "MCU"
 
 # Initialize the options for PyInstaller
-options = "--onefile --windowed --hidden-import=simpleaudio --add-data=tools/windows:tools/windows --add-data bootloaders:bootloaders --add-data probes:probes"
+options = "--onefile --windowed --hidden-import=simpleaudio --add-data bootloaders:bootloaders --add-data probes:probes"
 
-shutil.rmtree("dist")
+if is_windows:
+    options += " --add-data=tools/windows:tools/windows"
+else:
+    options += " --add-data=tools/linux:tools/linux"
+
+try:
+    shutil.rmtree("dist")
+except Exception:
+    pass
 
 # Get the list of subdirectories in the MCU directory
 if os.path.exists(MCUPath):

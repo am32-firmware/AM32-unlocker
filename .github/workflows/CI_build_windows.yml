@@ -13,7 +13,7 @@ jobs:
 
       - name: install dependencies
         run: |
-             python3 -m pip install pyinstaller simpleaudio setuptools
+             python3 -m pip install pyinstaller simpleaudio setuptools tk numpy
 
       - name: Build CI
         run: |
@@ -22,7 +22,7 @@ jobs:
       - name: Archive build
         uses: actions/upload-artifact@v3
         with:
-          name: ESC unlocker
+          name: ESC unlocker windows
           path: |
             esc_unlocker_windows.exe
           retention-days: 7
