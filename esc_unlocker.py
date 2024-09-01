@@ -8,7 +8,7 @@ MCU_LIST = ["F031", "F051", "G071", "G071_64K", "L431", "E230", "F415", "F421"]
 PIN_LIST = ["PA2", "PB4","PA15"]
 
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import ttk, scrolledtext, filedialog
 import subprocess
 import os
 import sys
@@ -123,8 +123,13 @@ def run_openocd():
     probe_file = get_resource_path(f"probes/{probe_type}.cfg")
 
     config_file = get_resource_path(config_file)
-    bootloader = os.path.join("bootloaders", f"AM32_{mcu_base}_BOOTLOADER_{pin}{k_tag}_V12.bin")
-    bootloader = get_resource_path(bootloader)
+    custom_bootloader = bootloader_var.get()
+
+    if custom_bootloader:
+        bootloader = custom_bootloader
+    else:
+        bootloader = os.path.join("bootloaders", f"AM32_{mcu_base}_BOOTLOADER_{pin}{k_tag}_V12.bin")
+        bootloader = get_resource_path(bootloader)
 
     log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
 
@@ -201,7 +206,7 @@ def update_status_led(color):
 root = tk.Tk()
 root.title("AM32 ESC Unlocker")
 
-root.grid_rowconfigure(5, weight=1)
+root.grid_rowconfigure(6, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
 root.grid_columnconfigure(2, weight=1)
@@ -249,8 +254,22 @@ canvas = tk.Canvas(root, width=20, height=20)
 canvas.grid(row=2, column=0, columnspan=1, pady=10)
 led = canvas.create_oval(5, 5, 20, 20, fill="gray")
 
+# Custom Bootloader selection
+def select_bootloader_file():
+    file_path = filedialog.askopenfilename(title="Custom Bootloader", filetypes=[("Binary files", "*.bin"), ("Hex files", "*.hex"), ("All files", "*.*")])
+    if file_path:
+        bootloader_var.set(file_path)
+
+bootloader_var = tk.StringVar()
+bootloader_label = ttk.Label(root, text="Custom Bootloader:")
+bootloader_label.grid(row=5, column=0, padx=10, pady=10)
+bootloader_entry = ttk.Entry(root, textvariable=bootloader_var, width=40)
+bootloader_entry.grid(row=5, column=1, columnspan=2, padx=10, pady=10)
+bootloader_button = ttk.Button(root, text="Browse...", command=select_bootloader_file)
+bootloader_button.grid(row=5, column=3, padx=10, pady=10)
+
 output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
-output_text.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+output_text.grid(row=6, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
 
 running = False
 
