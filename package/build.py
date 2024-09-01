@@ -2,12 +2,18 @@
 import os
 import subprocess
 import sys
+import platform
+import shutil
+
+is_windows = platform.system() == "Windows"
 
 # Define the path to the MCU directory
 MCUPath = "MCU"
 
 # Initialize the options for PyInstaller
 options = "--onefile --windowed --hidden-import=simpleaudio --add-data=tools/windows:tools/windows --add-data bootloaders:bootloaders --add-data probes:probes"
+
+shutil.rmtree("dist")
 
 # Get the list of subdirectories in the MCU directory
 if os.path.exists(MCUPath):
@@ -18,8 +24,7 @@ if os.path.exists(MCUPath):
         mcu_dir = os.path.join(MCUPath, m)
         if os.path.isdir(mcu_dir):
             print(f"Adding MCU {m}")
-            # Windows uses ';' instead of ':' to separate source and destination in PyInstaller --add-data
-            options += f" --add-data \"{mcu_dir};{mcu_dir}\""
+            options += f" --add-data \"{mcu_dir}:{mcu_dir}\""
 else:
     print(f"Error: The directory '{MCUPath}' does not exist.")
     sys.exit(1)
@@ -30,3 +35,13 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"Error: PyInstaller failed with exit code {e.returncode}")
     sys.exit(1)
+
+if is_windows:
+    src_file = "dist/esc_unlocker.exe"
+    release_file = "esc_unlocker_windows.exe"
+else:
+    src_file = "dist/esc_unlocker"
+    release_file = "esc_unlocker_linux"
+
+shutil.copy(src_file, release_file)
+print(f"Created {release_file}")
