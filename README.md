@@ -11,6 +11,7 @@ The key benefits of using this tool over traditional debug tools are:
  - the same tool works with all AM32 MCU targets
  - bootloaders are included
  - works with stlink-v2, cmsis-dap and jlink adapters
+ - allows for use of a custom bootloader
 
 [![Unlocking a 4-in-1](https://i.ytimg.com/vi/8_A27GfAbSg/maxresdefault.jpg)](https://www.youtube.com/watch?v=8_A27GfAbSg "Unlocking a 4-in-1")
 
@@ -34,7 +35,7 @@ You will need to download the linux or windows binaries for
 "esc_unlocker" from the releases section of this repository. Two
 packaged binaries are provided, one for windows and one for linux.
 
- https://github.com/tridge/AM32-unlocker/releases
+ https://github.com/am32-firmware/AM32-unlocker/releases
 
 When you run the tool you will get an interface like this:
 
