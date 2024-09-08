@@ -147,7 +147,7 @@ def run_openocd():
 
             openocd = get_openocd()
             process = subprocess.Popen([openocd,
-                                        '-c', "set BOOTLOADER %s" % bootloader,
+                                        '-c', 'set BOOTLOADER "%s"' % bootloader,
                                         '--file', probe_file,
                                         '--file', config_file],
                                         stdout=subprocess.PIPE,
