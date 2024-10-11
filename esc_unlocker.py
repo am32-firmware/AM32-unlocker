@@ -15,10 +15,12 @@ import sys
 import threading
 import time
 from datetime import datetime
+import intelhex
 
 import numpy as np
 import simpleaudio as sa
 import platform
+import tempfile
 
 is_windows = platform.system() == "Windows"
 
@@ -133,6 +135,20 @@ def run_openocd():
 
     log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
 
+    using_tempfile = False
+
+    if bootloader.lower().endswith(".hex"):
+        thandle = tempfile.NamedTemporaryFile(delete=False, suffix=".bin")
+        tfile = thandle.name
+        print("CREATED '%s'" % tfile)
+        if intelhex.hex2bin(bootloader, tfile) != 0:
+            log_message("Failed to convert hex to bin")
+            return
+        bootloader = tfile
+        using_tempfile = True
+        if is_windows:
+            bootloader = bootloader.replace("\\", "\\\\")
+
     print("Using config file '%s'" % config_file)
     print("Using probe file '%s'" % probe_file)
     while running:
@@ -183,6 +199,9 @@ def run_openocd():
         except Exception as e:
             print(f"Error running OpenOCD: {e}")
 
+    if using_tempfile:
+        os.unlink(tfile)
+
 def start_openocd():
     if not running:
         output_text.delete(1.0, tk.END)
@@ -206,7 +225,7 @@ def update_status_led(color):
 root = tk.Tk()
 root.title("AM32 ESC Unlocker")
 
-root.grid_rowconfigure(6, weight=1)
+root.grid_rowconfigure(7, weight=1)
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(1, weight=1)
 root.grid_columnconfigure(2, weight=1)
@@ -256,7 +275,7 @@ led = canvas.create_oval(5, 5, 20, 20, fill="gray")
 
 # Custom Bootloader selection
 def select_bootloader_file():
-    file_path = filedialog.askopenfilename(title="Custom Bootloader", filetypes=[("Binary files", "*.bin"), ("Hex files", "*.hex"), ("All files", "*.*")])
+    file_path = filedialog.askopenfilename(title="Custom Bootloader", filetypes=[("Bin and hex files", "*.bin *.hex"), ("All files", "*.*")])
     if file_path:
         bootloader_var.set(file_path)
 
@@ -268,8 +287,22 @@ bootloader_entry.grid(row=5, column=1, columnspan=2, padx=10, pady=10)
 bootloader_button = ttk.Button(root, text="Browse...", command=select_bootloader_file)
 bootloader_button.grid(row=5, column=3, padx=10, pady=10)
 
+bootloader_label = ttk.Label(root, text="Custom Bootloader:")
+bootloader_label.grid(row=5, column=0, padx=10, pady=10)
+
+warn = tk.Text(root, wrap='word', height=5, bg='lightgrey')
+warn.insert(tk.END,
+'''NOTE! The included bootloaders are the latest development versions.
+For the stable bootloaders please download from
+  https://am32.ca/downloads
+and use the Custom Bootloader option
+''')
+warn.config(state=tk.DISABLED)
+warn.grid(row=6, column=0, columnspan=4, padx=10, pady=10)
+
+
 output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
-output_text.grid(row=6, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+output_text.grid(row=7, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
 
 running = False
 
