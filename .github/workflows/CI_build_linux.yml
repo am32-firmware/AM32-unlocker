@@ -14,7 +14,7 @@ jobs:
       - name: install dependencies
         run: |
              sudo apt install alsa-base libasound2-dev python3-tk python3-numpy
-             python3 -m pip install pyinstaller simpleaudio setuptools
+             python3 -m pip install pyinstaller simpleaudio setuptools intelhex
 
       - name: Build CI
         run: |

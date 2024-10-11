@@ -13,7 +13,7 @@ jobs:
 
       - name: install dependencies
         run: |
-             python3 -m pip install pyinstaller simpleaudio setuptools tk numpy
+             python3 -m pip install pyinstaller simpleaudio setuptools tk numpy intelhex
 
       - name: Build CI
         run: |
