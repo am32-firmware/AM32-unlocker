@@ -23,6 +23,7 @@ import platform
 import tempfile
 
 is_windows = platform.system() == "Windows"
+is_macos = platform.system() == "Darwin"
 
 pending_tones = []
 
@@ -89,6 +90,8 @@ def get_openocd():
     '''get path to openocd'''
     if is_windows:
         openocd = "tools/windows/openocd/bin/openocd.exe"
+    elif is_macos:
+        openocd = "tools/macos/openocd/bin/openocd"
     else:
         # assume Linux
         openocd = "tools/linux/openocd/bin/openocd"
