@@ -133,7 +133,7 @@ def run_openocd():
     if custom_bootloader:
         bootloader = custom_bootloader
     else:
-        bootloader = os.path.join("bootloaders", f"AM32_{mcu_base}_BOOTLOADER_{pin}{k_tag}_V13.bin")
+        bootloader = os.path.join("bootloaders", f"AM32_{mcu_base}_BOOTLOADER_{pin}{k_tag}_V14.bin")
         bootloader = get_resource_path(bootloader)
 
     log_message("Starting MCU %s PIN %s op %s" % (mcu_type, pin, op))
