@@ -6,6 +6,7 @@ import platform
 import shutil
 
 is_windows = platform.system() == "Windows"
+is_macos = platform.system() == "Darwin"
 
 # Define the path to the MCU directory
 MCUPath = "MCU"
@@ -15,6 +16,8 @@ options = "--onefile --windowed --hidden-import=simpleaudio --add-data bootloade
 
 if is_windows:
     options += " --add-data=tools/windows:tools/windows"
+elif is_macos:
+    options += " --add-data=tools/macos:tools/macos"
 else:
     options += " --add-data=tools/linux:tools/linux"
 
@@ -47,6 +50,9 @@ except subprocess.CalledProcessError as e:
 if is_windows:
     src_file = "dist/esc_unlocker.exe"
     release_file = "esc_unlocker_windows.exe"
+elif is_macos:
+    src_file = "dist/esc_unlocker"
+    release_file = "esc_unlocker_macos"
 else:
     src_file = "dist/esc_unlocker"
     release_file = "esc_unlocker_linux"

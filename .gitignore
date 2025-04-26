@@ -1,2 +1,8 @@
 *.log
 .DS_Store
+build/
+dist/
+esc_unlocker.spec
+esc_unlocker_macos
+esc_unlocker_windows.exe
+esc_unlocker_linux
