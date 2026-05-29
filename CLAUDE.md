@@ -10,7 +10,7 @@ AM32 ESC Unlocker - a Python/Tkinter GUI tool for unlocking flash protection on 
 
 **Install dependencies:**
 ```
-pip install pyinstaller simpleaudio setuptools intelhex numpy
+pip install pyinstaller sounddevice setuptools intelhex numpy
 ```
 
 **Build standalone executable (via PyInstaller):**
@@ -53,7 +53,7 @@ Each OpenOCD invocation is `openocd -c 'set BOOTLOADER "<path>"' --file <probe>.
 - Threading: OpenOCD runs in a background thread to keep the GUI responsive
 - Resource paths: `get_resource_path()` handles both development and PyInstaller-bundled paths via `sys._MEIPASS`
 - Windows paths require backslash escaping (`\\`) when passed to OpenOCD — done in `get_resource_path()` and for the temp hex→bin path
-- Audio feedback uses NumPy-generated waveforms via simpleaudio. The OpenOCD thread only *appends* to a `pending_tones` list; an `after(10ms)` callback on the Tk main thread drains and plays it, keeping audio off the worker thread.
+- Audio feedback uses NumPy-generated waveforms played via `sounddevice` (PortAudio). Audio is optional: the import is guarded (`have_audio`) so a missing backend disables sound instead of crashing, and the reason is shown in the output box. The OpenOCD thread only *appends* to a `pending_tones` list; an `after(10ms)` callback on the Tk main thread drains and plays it, keeping audio off the worker thread.
 - The bootloader path is injected via `-c 'set BOOTLOADER "<path>"'`, which the `.cfg` files read for their `flash write_bank` / `verify_bank` commands
 - Probe selection maps GUI labels to `probes/{stlink,jlink,cmsis-dap}.cfg`
 - All activity is appended to `esc_unlocker.log` in the working directory

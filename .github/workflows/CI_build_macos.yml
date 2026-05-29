@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install python-tk
-          python3 -m pip install pyinstaller simpleaudio setuptools intelhex numpy
+          python3 -m pip install pyinstaller sounddevice setuptools intelhex numpy
 
       - name: Build CI
         run: |
