@@ -18,14 +18,18 @@ import time
 from datetime import datetime
 import intelhex
 
-# audio is optional: simpleaudio is an unmaintained C extension and may fail
-# to import on some platforms. Never let that prevent the app from starting.
+# audio is optional: never let a missing/broken audio backend prevent the
+# app from starting. sounddevice ships prebuilt wheels (PortAudio bundled on
+# Windows/macOS, system libportaudio2 on Linux); audio_error records why it
+# is unavailable so we can surface it once the GUI is up.
 try:
     import numpy as np
-    import simpleaudio as sa
+    import sounddevice as sd
     have_audio = True
-except Exception:
+    audio_error = None
+except Exception as e:
     have_audio = False
+    audio_error = str(e)
 import platform
 import tempfile
 
@@ -62,9 +66,9 @@ def play_tone(frequency, duration=0.1, volume=0.2):
         wave = np.sin(frequency * t * 2 * np.pi)
     
         audio = (wave * (32767 * volume)).astype(np.int16)
-    
-        play_obj = sa.play_buffer(audio, 1, 2, sample_rate)
-        play_obj.wait_done()
+
+        sd.play(audio, sample_rate)
+        sd.wait()
     except Exception as e:
         print(e)
         pass
@@ -329,6 +333,12 @@ warn.grid(row=6, column=0, columnspan=4, padx=10, pady=10)
 
 output_text = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=50, height=10)
 output_text.grid(row=7, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+
+if not have_audio:
+    # surface why audio is off instead of failing silently
+    msg = "Audio disabled (%s); continuing without sound\n" % (audio_error or "no audio backend")
+    output_text.insert(tk.END, msg)
+    log_message(msg)
 
 running = False
 

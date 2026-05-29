@@ -12,7 +12,7 @@ is_macos = platform.system() == "Darwin"
 MCUPath = "MCU"
 
 # Initialize the options for PyInstaller
-options = "--onefile --windowed --hidden-import=simpleaudio --add-data bootloaders:bootloaders --add-data probes:probes"
+options = "--onefile --windowed --collect-all sounddevice --add-data bootloaders:bootloaders --add-data probes:probes"
 
 if is_windows:
     options += " --add-data=tools/windows:tools/windows"
