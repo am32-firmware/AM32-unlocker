@@ -13,6 +13,7 @@ import subprocess
 import os
 import sys
 import threading
+import queue
 import time
 from datetime import datetime
 import intelhex
@@ -26,6 +27,22 @@ is_windows = platform.system() == "Windows"
 is_macos = platform.system() == "Darwin"
 
 pending_tones = []
+
+# Tkinter is not thread-safe: widgets may only be touched from the thread
+# running mainloop(). The OpenOCD worker thread pushes callables onto this
+# queue and process_gui_queue() (scheduled on the main thread) runs them.
+gui_queue = queue.Queue()
+
+def gui_call(fn):
+    '''schedule a callable to run on the main GUI thread'''
+    gui_queue.put(fn)
+
+def append_output(text):
+    '''append text to the output box from any thread'''
+    def do():
+        output_text.insert(tk.END, text)
+        output_text.see(tk.END)
+    gui_call(do)
 
 def play_tone(frequency, duration=0.1, volume=0.2):
     '''
@@ -175,29 +192,27 @@ def run_openocd():
 
             output = process.stdout.read().decode()
             if output:
-                output_text.insert(tk.END, output)
-                output_text.see(tk.END)
+                append_output(output)
                 log_message(output)
             outerr = process.stderr.read().decode()
             if outerr:
-                output_text.insert(tk.END, outerr)
-                output_text.see(tk.END)
+                append_output(outerr)
                 log_message(outerr)
             if outerr.find("Cortex-M") != -1:
                 # found the MCU
                 play_found()
-                update_status_led("orange")
+                gui_call(lambda: update_status_led("orange"))
             else:
                 # we're still looking for the MCU
                 play_searching()
-                update_status_led("red")
+                gui_call(lambda: update_status_led("red"))
             retcode = process.poll()
             if retcode is not None:
                 if retcode == 0:
                     log_message("Success")
                     print("%s successful." % mode_var.get())
                     play_success()
-                    update_status_led("green")
+                    gui_call(lambda: update_status_led("green"))
                     running = False
         except Exception as e:
             print(f"Error running OpenOCD: {e}")
@@ -316,7 +331,21 @@ def play_tones():
         play_tone(tone, duration)
     root.after(10, play_tones)
 
+def process_gui_queue():
+    '''run GUI actions queued by the worker thread (main thread only)'''
+    try:
+        while True:
+            fn = gui_queue.get_nowait()
+            try:
+                fn()
+            except Exception:
+                pass
+    except queue.Empty:
+        pass
+    root.after(50, process_gui_queue)
+
 root.after(10, play_tones)
+root.after(50, process_gui_queue)
 
 # Start the GUI event loop
 root.mainloop()
