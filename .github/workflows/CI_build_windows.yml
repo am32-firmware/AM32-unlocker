@@ -11,6 +11,11 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: install dependencies
         run: |
              python3 -m pip install pyinstaller simpleaudio setuptools tk numpy intelhex
