@@ -7,7 +7,9 @@ PROBE_LIST = ["ST Link", "JLink", "CMSIS-DAP"]
 MCU_LIST = ["F031", "F051", "G071", "G071_64K", "G431", "L431", "E230", "F415", "F421"]
 PIN_LIST = ["PA0","PA2","PA6","PB4","PA15"]
 CAN_MCUS = ["F415", "G431", "L431"]
-CAN_ERASE_SECTORS = {"F415": 15, "G431": 8, "L431": 8}
+# index of the last flash sector to erase for the larger CAN bootloaders
+# (passed to "flash erase_sector 0 0 <last>", which is inclusive)
+CAN_ERASE_LAST_SECTOR = {"F415": 15, "G431": 8, "L431": 8}
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog
@@ -201,8 +203,8 @@ def run_openocd():
             openocd = get_openocd()
             ocd_args = [openocd,
                         '-c', 'set BOOTLOADER "%s"' % bootloader]
-            if use_can and mcu_base in CAN_ERASE_SECTORS:
-                ocd_args += ['-c', 'set ERASE_SECTORS %d' % CAN_ERASE_SECTORS[mcu_base]]
+            if use_can and mcu_base in CAN_ERASE_LAST_SECTOR:
+                ocd_args += ['-c', 'set ERASE_LAST_SECTOR %d' % CAN_ERASE_LAST_SECTOR[mcu_base]]
             ocd_args += ['--file', probe_file,
                          '--file', config_file]
             process = subprocess.Popen(ocd_args,
@@ -306,6 +308,7 @@ def on_mcu_change(*args):
         can_check.state(['disabled'])
 
 mcu_var.trace_add('write', on_mcu_change)
+on_mcu_change()  # sync checkbox state to the initial MCU selection
 
 # locking mode
 mode_var = tk.StringVar()
