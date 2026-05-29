@@ -18,8 +18,14 @@ import time
 from datetime import datetime
 import intelhex
 
-import numpy as np
-import simpleaudio as sa
+# audio is optional: simpleaudio is an unmaintained C extension and may fail
+# to import on some platforms. Never let that prevent the app from starting.
+try:
+    import numpy as np
+    import simpleaudio as sa
+    have_audio = True
+except Exception:
+    have_audio = False
 import platform
 import tempfile
 
@@ -48,6 +54,8 @@ def play_tone(frequency, duration=0.1, volume=0.2):
     '''
     play a tone
     '''
+    if not have_audio:
+        return
     try:
         sample_rate = 44100  # samples per second
         t = np.linspace(0, duration, int(sample_rate * duration), False)
