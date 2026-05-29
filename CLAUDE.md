@@ -17,7 +17,7 @@ pip install pyinstaller sounddevice setuptools intelhex numpy
 ```
 python package/build.py
 ```
-`package/build.py` is the canonical build: it discovers every `MCU/*` directory and bundles `bootloaders/`, `probes/`, and only the *current* platform's `tools/{platform}` via `--add-data`, then copies the result to `esc_unlocker_{linux,windows,macos}`. The checked-in `esc_unlocker.spec` is a generated artifact (Linux-only datas) — don't hand-edit it; regenerate via `build.py`.
+`package/build.py` is the canonical build: it discovers every `MCU/*` directory and bundles `bootloaders/`, `probes/`, and only the *current* platform's `tools/{platform}` via `--add-data`, then copies the result to `esc_unlocker_{linux,windows,macos}`. The `esc_unlocker.spec` is a generated artifact (git-ignored) — don't hand-edit it; regenerate via `build.py`.
 
 **Run directly:**
 ```

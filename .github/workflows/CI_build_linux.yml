@@ -13,7 +13,7 @@ jobs:
 
       - name: install dependencies
         run: |
-             sudo apt install alsa-base libasound2-dev libportaudio2 python3-tk python3-numpy
+             sudo apt install libportaudio2 python3-tk python3-numpy
              python3 -m pip install pyinstaller sounddevice setuptools intelhex
 
       - name: Build CI
