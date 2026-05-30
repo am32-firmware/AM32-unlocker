@@ -429,6 +429,11 @@ running = False
 
 # play queued tones on a daemon thread, off the Tk main loop
 if have_audio:
+    try:
+        dev = sd.query_devices(kind='output')
+        log_message("audio: sounddevice %s, output device '%s'" % (sd.__version__, dev['name']))
+    except Exception as e:
+        log_message("audio: no usable output device: %s" % e)
     threading.Thread(target=audio_worker, daemon=True).start()
 
 def process_gui_queue():
@@ -445,6 +450,50 @@ def process_gui_queue():
     root.after(50, process_gui_queue)
 
 root.after(50, process_gui_queue)
+
+def apply_cli_args():
+    '''optional command-line control, handy for automated/headless testing'''
+    import argparse
+    parser = argparse.ArgumentParser(description="AM32 ESC Unlocker")
+    parser.add_argument('--mcu', choices=MCU_LIST, help='MCU type')
+    parser.add_argument('--port', '--pin', dest='pin', choices=PIN_LIST, help='signal pin')
+    parser.add_argument('--probe', choices=PROBE_LIST, help='debug probe')
+    parser.add_argument('--mode', choices=['Unlock', 'Lock'], help='operation')
+    parser.add_argument('--bootloader', help='custom bootloader file')
+    parser.add_argument('--can', action='store_true', help='use the CAN bootloader variant')
+    parser.add_argument('--start', action='store_true', help='press Start automatically')
+    parser.add_argument('--test-audio', action='store_true',
+                        help='play test tones and log the outcome (audio diagnostics)')
+    parser.add_argument('--exit-after', type=float, default=0,
+                        help='quit automatically after N seconds (testing)')
+    # parse_known_args so a macOS .app launch arg (-psn_...) doesn't abort
+    args, _ = parser.parse_known_args()
+
+    if args.mcu:
+        mcu_var.set(args.mcu)        # fires on_mcu_change -> enables CAN if applicable
+    if args.pin:
+        pin_var.set(args.pin)
+    if args.probe:
+        probe_var.set(args.probe)
+    if args.mode:
+        mode_var.set(args.mode)
+    if args.bootloader:
+        bootloader_var.set(args.bootloader)
+    if args.can:
+        can_var.set(True)
+    if args.test_audio:
+        def _audio_test():
+            log_message("audio test: starting (have_audio=%s)" % have_audio)
+            play_tone(880, 0.3)
+            play_tone(660, 0.3)
+            log_message("audio test: done (no exception from sd.play)")
+        threading.Thread(target=_audio_test, daemon=True).start()
+    if args.start:
+        root.after(500, start_openocd)
+    if args.exit_after > 0:
+        root.after(int(args.exit_after * 1000), quit)
+
+apply_cli_args()
 
 # Start the GUI event loop
 root.mainloop()
