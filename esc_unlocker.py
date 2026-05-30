@@ -40,7 +40,21 @@ import tempfile
 is_windows = platform.system() == "Windows"
 is_macos = platform.system() == "Darwin"
 
-pending_tones = []
+# In a --windowed/--noconsole PyInstaller build sys.stdout/stderr are None, so
+# any print() raises - which would kill the OpenOCD worker thread mid-run.
+# Redirect to devnull so the existing print() calls are always safe.
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
+# tones are played on a dedicated thread so blocking PortAudio calls never
+# stall the Tk main loop (doing this on the main thread caused severe UI lag
+# on macOS)
+audio_queue = queue.Queue()
+
+# the currently running openocd child, so Stop can terminate it
+current_process = None
 
 # Tkinter is not thread-safe: widgets may only be touched from the thread
 # running mainloop(). The OpenOCD worker thread pushes callables onto this
@@ -74,22 +88,30 @@ def play_tone(frequency, duration=0.1, volume=0.2):
         sd.play(audio, sample_rate)
         sd.wait()
     except Exception as e:
-        print(e)
-        pass
+        log_message("audio error: %s" % e)
 
+
+def queue_tone(frequency, duration=0.1):
+    '''enqueue a tone for the audio thread (bounded so it can't back up)'''
+    if have_audio and audio_queue.qsize() < 4:
+        audio_queue.put((frequency, duration))
+
+def audio_worker():
+    '''play queued tones off the GUI thread'''
+    while True:
+        frequency, duration = audio_queue.get()
+        play_tone(frequency, duration)
 
 def play_searching():
-    print("Searching")
-    pending_tones.append((300, 0.1))
+    queue_tone(300, 0.1)
 
 def play_found():
-    print("Found")
-    pending_tones.append((880, 0.1))
+    queue_tone(880, 0.1)
 
 def play_success():
-    pending_tones.append((600, 0.1))
-    pending_tones.append((800, 0.1))
-    pending_tones.append((1000, 0.1))
+    queue_tone(600, 0.1)
+    queue_tone(800, 0.1)
+    queue_tone(1000, 0.1)
 
 
 def log_message(msg):
@@ -134,7 +156,7 @@ def run_openocd():
     '''
     run openocd as a child, looping until running is False or success
     '''
-    global running
+    global running, current_process
     running = True
     mcu_type = mcu_var.get()
     probe_type = probe_var.get()
@@ -211,6 +233,8 @@ def run_openocd():
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,
                                         startupinfo=startupinfo)
+            # expose to stop_openocd() so Stop can terminate a blocked attempt
+            current_process = process
 
             output = process.stdout.read().decode()
             if output:
@@ -220,6 +244,9 @@ def run_openocd():
             if outerr:
                 append_output(outerr)
                 log_message(outerr)
+            if not running:
+                # Stop was pressed (process terminated); don't beep or relaunch
+                break
             if outerr.find("Cortex-M") != -1:
                 # found the MCU
                 play_found()
@@ -238,7 +265,11 @@ def run_openocd():
                     running = False
         except Exception as e:
             print(f"Error running OpenOCD: {e}")
+        # brief pause so a fast-failing attempt doesn't busy-loop relaunching
+        if running:
+            time.sleep(0.3)
 
+    current_process = None
     if using_tempfile:
         os.unlink(tfile)
 
@@ -248,14 +279,25 @@ def start_openocd():
         thd = threading.Thread(target=run_openocd)
         thd.start()
 
+def terminate_process():
+    '''kill the in-flight openocd child, if any, to unblock the worker thread'''
+    p = current_process
+    if p is not None:
+        try:
+            p.terminate()
+        except Exception:
+            pass
+
 def stop_openocd():
     global running
     running = False
+    terminate_process()
     log_message("stopping")
 
 def quit():
     global running
     running = False
+    terminate_process()
     sys.exit(0)
 
 def update_status_led(color):
@@ -370,12 +412,9 @@ if not have_audio:
 
 running = False
 
-def play_tones():
-    '''callback to play tones'''
-    while len(pending_tones) > 0:
-        tone,duration = pending_tones.pop()
-        play_tone(tone, duration)
-    root.after(10, play_tones)
+# play queued tones on a daemon thread, off the Tk main loop
+if have_audio:
+    threading.Thread(target=audio_worker, daemon=True).start()
 
 def process_gui_queue():
     '''run GUI actions queued by the worker thread (main thread only)'''
@@ -390,7 +429,6 @@ def process_gui_queue():
         pass
     root.after(50, process_gui_queue)
 
-root.after(10, play_tones)
 root.after(50, process_gui_queue)
 
 # Start the GUI event loop
