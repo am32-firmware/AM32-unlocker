@@ -152,14 +152,16 @@ def get_openocd():
         openocd = "tools/linux/openocd/bin/openocd"
     return get_resource_path(openocd)
 
-def run_openocd():
+def run_openocd(params):
     '''
-    run openocd as a child, looping until running is False or success
+    run openocd as a child, looping until running is False or success.
+    params holds the GUI selections, read on the main thread by the caller -
+    the worker must never touch Tk (macOS Aqua wedges the event loop if it does)
     '''
     global running, current_process
     running = True
-    mcu_type = mcu_var.get()
-    probe_type = probe_var.get()
+    mcu_type = params['mcu_type']
+    probe_type = params['probe_type']
     if probe_type == "ST Link":
         probe_type = "stlink"
     elif probe_type == "JLink":
@@ -167,8 +169,9 @@ def run_openocd():
     elif probe_type == "CMSIS-DAP":
         probe_type = "cmsis-dap"
 
-    pin = pin_var.get()
-    if mode_var.get() == "Lock":
+    pin = params['pin']
+    mode = params['mode']
+    if mode == "Lock":
         op = "lock"
     else:
         op = "unlock"
@@ -183,9 +186,9 @@ def run_openocd():
     probe_file = get_resource_path(f"probes/{probe_type}.cfg")
 
     config_file = get_resource_path(config_file)
-    custom_bootloader = bootloader_var.get()
+    custom_bootloader = params['custom_bootloader']
 
-    use_can = can_var.get() and mcu_base in CAN_MCUS
+    use_can = params['can'] and mcu_base in CAN_MCUS
     can_tag = "_CAN" if use_can else ""
 
     if custom_bootloader:
@@ -259,7 +262,7 @@ def run_openocd():
             if retcode is not None:
                 if retcode == 0:
                     log_message("Success")
-                    print("%s successful." % mode_var.get())
+                    print("%s successful." % mode)
                     play_success()
                     gui_call(lambda: update_status_led("green"))
                     running = False
@@ -276,7 +279,17 @@ def run_openocd():
 def start_openocd():
     if not running:
         output_text.delete(1.0, tk.END)
-        thd = threading.Thread(target=run_openocd)
+        # read all GUI state here on the main thread and hand it to the worker;
+        # the worker must not call any Tk method (unsafe, hangs macOS)
+        params = {
+            'mcu_type': mcu_var.get(),
+            'probe_type': probe_var.get(),
+            'pin': pin_var.get(),
+            'mode': mode_var.get(),
+            'custom_bootloader': bootloader_var.get(),
+            'can': can_var.get(),
+        }
+        thd = threading.Thread(target=run_openocd, args=(params,), daemon=True)
         thd.start()
 
 def terminate_process():
@@ -298,7 +311,9 @@ def quit():
     global running
     running = False
     terminate_process()
-    sys.exit(0)
+    # destroy() reliably ends mainloop; sys.exit() can be swallowed by Tk, and
+    # the worker is a daemon thread so the process exits cleanly
+    root.destroy()
 
 def update_status_led(color):
     canvas.itemconfig(led, fill=color)
